@@ -1,9 +1,25 @@
 from typing import Literal, Optional, TypedDict
 
-USER_AGENT = "trakt-to-sqlite"
+
+class ShowIDs(TypedDict):
+    trakt: int  # 406221
+    slug: str  # "parks-and-recreation"
+    tvdb: int  # 1088061
+    imdb: str  # "tt1504148"
+    tmdb: int  # 397635
+    tvrage: Optional[int]  # None
 
 
-class Show(TypedDict):
+class ShowBare(TypedDict):
+    title: str  # "Parks and Recreation"
+    year: int  # 2009
+
+
+class Show(ShowBare, ShowIDs):
+    ids: ShowIDs
+
+
+class ShowRow(TypedDict):
     type: Literal["show"]
     id: int  # ids.trakt, will be treated as primary key.
     title: str  # "Parks and Recreation"
@@ -13,10 +29,28 @@ class Show(TypedDict):
     tvdb_id: int  # 84912
     imdb_id: str  # "tt1266020"
     tmdb_id: int  # 8592
-    tvrage_id: int  # 21686
+    tvrage_id: Optional[int]  # 21686
 
 
-class Episode(TypedDict):
+class EpisodeIDs(TypedDict):
+    trakt: int  # 406221
+    tvdb: int  # 1088061
+    imdb: str  # "tt1504148"
+    tmdb: int  # 397635
+    tvrage: Optional[int]  # None
+
+
+class EpisodeBare(TypedDict):
+    season: int  # 2
+    number: int  # 5
+    title: str  # "Sister City"
+
+
+class Episode(EpisodeBare, EpisodeIDs):
+    ids: EpisodeIDs
+
+
+class EpisodeRow(TypedDict):
     type: Literal["episode"]
     id: int  # ids.trakt, will be treated as primary key.
     show_id: int  # Foreign Key
@@ -31,9 +65,13 @@ class Episode(TypedDict):
 
 
 class CollectedEpisode(Episode):
-    id: int  # Primary Key
+    collected_at: bool  # "2019-09-24T09:03:22.000Z"
+    updated_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class CollectedEpisodeRow(TypedDict):
+    row_id: str  # Primary Key
     episode_id: int
-    collected: bool  # False
     collected_at: float  # "2019-09-24T09:03:22.000Z"
 
 
@@ -44,14 +82,52 @@ class RatedEpisode(Episode):
     rated_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class PlayedEpisode(Episode):
+class WatchedEpisode(Episode):
+    plays: int  # 10
+    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class WatchedEpisodeRow(TypedDict):
     id: int  # Primary Key
     episode_id: int
     total_plays: int  # 10
     last_watched_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class Movie(TypedDict):
+class HistoryEpisode(Episode, Show):
+    id: int
+    episode: Episode
+    show: Show
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    action: str  # watch
+    type: str  # episode
+
+
+class HistoryEpisodeRow(TypedDict):
+    id: int  # Primary Key
+    type: Literal["episode"]
+    media_id: int
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class MovieIDs(TypedDict):
+    trakt: int  # 406221
+    slug: str  # "a-quiet-place-2018"
+    imdb: str  # "tt1504148"
+    tmdb: int  # 397635
+
+
+class MovieBare(TypedDict):
+    title: str  # "A Quiet Place"
+    year: int  # 2018
+
+
+class Movie(MovieBare, MovieIDs):
+    ids: MovieIDs
+
+
+class MovieRow(TypedDict):
     type: Literal["movie"]
     id: int  # ids.trakt, will be treated as primary key.
     title: str  # "A Quiet Place"
@@ -62,11 +138,30 @@ class Movie(TypedDict):
     tmdb_id: int  # 447332
 
 
-class CollectedMovie(Movie):
+class HistoryMovie(Movie):
+    id: int
+    movie: Movie
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    action: str  # watch
+    type: str  # movie
+
+
+class HistoryMovieRow(TypedDict):
     id: int  # Primary Key
+    type: Literal["movie"]
+    media_id: int
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class CollectedMovieRow(TypedDict):
+    row_id: str  # Primary Key
     movie_id: int
-    collected: bool  # False
     collected_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class CollectedMovie(Movie):
+    collected_at: float  # "2019-09-24T09:03:22.000Z"
+    updated_at: float  # "2019-09-24T09:03:22.000Z"
 
 
 class RatedMovie(Movie):
@@ -76,7 +171,7 @@ class RatedMovie(Movie):
     rated_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class PlayedMovie(Movie):
+class WatchedMovie(Movie):
     id: int  # Primary Key
     movie_id: int
     total_plays: int  # 10
