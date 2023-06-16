@@ -1,5 +1,4 @@
 from itertools import repeat
-from typing import Optional
 
 from sqlite_utils import Database
 
@@ -18,6 +17,7 @@ from trakt import (
     Season,
     Show,
     ShowRow,
+    CollectedShow,
 )
 
 
@@ -156,74 +156,16 @@ class Collected:
             "tvrage_id": entry["ids"]["tvrage"],
         }
 
-    def handle_collected_episode_entry_deprecated(
-        self, entry: CollectedEpisode, db: Database, username: str
-    ) -> tuple[CollectedEpisodeRow, list[EpisodeRow], Optional[ShowRow]]:
-        """
-        This approach was not working, there is an inherent flaw in the sqlite_utils library where insert() and consecutive insert_all() on the same database, but different tables throw an IndexError. And upsert() is not working idk why.
-        So, the approach I settled on is handle the 3 parts seperately.
-        First add all show data.
-        Then for all the shows, get all the episodes add them.
-        And finally the collected data.
-        That works. Keeping this method as a backup just in case.
-        """
-        c = Commons()
-        api = TraktRequest(username)
-
-        episode_id = self.get_episode_id_from_entry(entry)
-        logging.info(f"Starting hcee on episode_id : {episode_id}")
-        # If episode is not present in our db, we can't get the show_id,
-        # and in turn can't create a fully formed EpisodeRow.
-        # So, we fetch the episode and show details from trakt API.
-        # Write the entire show history to our db, so as to not poll the API again.
-        episodes = []
-        logging.info(
-            "count of episode_id in episode table:"
-            f" {db['episode'].count_where('id == ?', [episode_id])}"
-        )
-
-        flag = False
-        if db["episode"].count_where("id == ?", [episode_id]) < 1:  # type :ignore
-            flag = True
-            logging.info(f"Inside if")
-            show_data = api.get_show_data_from_episode_id(episode_id)
-            logging.info(f"Got show data from api.")
-            show_id = show_data["show"]["ids"]["trakt"]
-            logging.info(f"show_id : {show_id}")
-            show_row = c.show_to_show_row(show_data["show"])
-            logging.info(show_row)
-            seasons = api.get_seasons_data_from_show_id(show_id)
-            logging.info(seasons)
-            episodes = c.multiple_seasons_to_list_episode_row(seasons)
-            logging.info(episodes)
-            logging.info(f"Entire episodes_row is of length : {len(episodes)}")
-        else:
-            lst: list[EpisodeRow] = list(db["episode"].rows_where("id == ?", [episode_id]))
-            assert len(lst) == 1
-            logging.info(f"Inside else condition")
-            logging.info(lst)
-            show_id = lst[0]["show_id"]
-            logging.info(show_id)
-            show_row = None
-            logging.info("As show_id is present in table, show_row is None.")
-        cl_episode_row = self.entry_to_collected_episode_row(entry)
-        logging.info(f"Converted CollectedEpisode to CollectedEpisodeRow : {cl_episode_row}")
-        episode_row = c.episode_to_episode_row(self.entry_to_episode(entry), show_id)
-        logging.info(f"Current episode from data got from the json file : {episode_row}")
-        if not flag:
-            episodes.append(episode_row)
-            logging.info(f"Entire episodes_row is now of length : {len(episodes)}")
-
-        return (cl_episode_row, episodes, show_row)
-
-    def handle_collected_episodes_prerequisites(self, data, db: Database, username: str) -> None:
+    def handle_collected_episodes_prerequisites(
+        self, show_data: CollectedShow, db: Database, username: str
+    ) -> None:
         c = Commons()
 
         show_ids: list[int] = []
         show_rows: list[ShowRow] = []
-        for entry in data:
-            show_id: int = entry["show"]["ids"]["trakt"]
-            show: Show = entry["show"]
+        for entry in show_data:
+            show_id: int = entry["show"]["ids"]["trakt"]  # type: ignore
+            show: Show = entry["show"]  # type: ignore
             show_ids.append(show_id)
             show_rows.append(c.show_to_show_row(show))
 
@@ -233,8 +175,12 @@ class Collected:
         for show_id in show_ids:
             seasons = api.get_seasons_data_from_show_id(show_id)
             episodes = c.multiple_seasons_to_list_episode_row(seasons)
-            db["episode"].insert_all(
-                episodes, pk="id", foreign_keys=["show_id"], batch_size=100, ignore=True
+            db["episode"].insert_all(  # type: ignore
+                episodes,
+                pk="id",  # type: ignore
+                foreign_keys=["show_id"],  # type: ignore
+                batch_size=100,  # type: ignore
+                ignore=True,  # type: ignore
             )
 
     def handle_collected_episode_entry(self, entry: CollectedEpisode) -> CollectedEpisodeRow:
