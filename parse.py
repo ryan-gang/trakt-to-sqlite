@@ -6,6 +6,8 @@ from api import TraktRequest
 from trakt import (
     CollectedEpisode,
     CollectedEpisodeRow,
+    CollectedMovie,
+    CollectedMovieRow,
     Episode,
     EpisodeRow,
     HistoryEpisode,
@@ -135,8 +137,18 @@ class Collected:
             "collected_at": entry["collected_at"],
         }
 
+    def entry_to_collected_movie_row(self, entry: CollectedMovie) -> CollectedMovieRow:
+        return {
+            "type": "movie",
+            "media_id": entry["movie"]["ids"]["trakt"],
+            "collected_at": entry["collected_at"],
+        }
+
     def entry_to_episode(self, entry: CollectedEpisode) -> Episode:
         return entry["episode"]
+
+    def entry_to_movie(self, entry: CollectedMovie) -> Movie:
+        return entry["movie"]
 
     def get_episode_id_from_entry(self, entry: CollectedEpisode) -> int:
         return entry["episode"]["ids"]["trakt"]
@@ -157,15 +169,15 @@ class Collected:
         }
 
     def handle_collected_episodes_prerequisites(
-        self, show_data: CollectedShow, db: Database, username: str
+        self, show_data: list[CollectedShow], db: Database, username: str
     ) -> None:
         c = Commons()
 
         show_ids: list[int] = []
         show_rows: list[ShowRow] = []
         for entry in show_data:
-            show_id: int = entry["show"]["ids"]["trakt"]  # type: ignore
-            show: Show = entry["show"]  # type: ignore
+            show_id: int = entry["show"]["ids"]["trakt"]
+            show: Show = entry["show"]
             show_ids.append(show_id)
             show_rows.append(c.show_to_show_row(show))
 
@@ -186,3 +198,16 @@ class Collected:
     def handle_collected_episode_entry(self, entry: CollectedEpisode) -> CollectedEpisodeRow:
         cl_episode_row = self.entry_to_collected_episode_row(entry)
         return cl_episode_row
+
+    def handle_collected_movies_prerequisites(
+        self, movie_data: list[CollectedMovie], db: Database
+    ) -> None:
+        c = Commons()
+        movies = list(map(self.entry_to_movie, movie_data))
+        movie_rows: list[MovieRow] = list(map(c.movie_to_movie_row, movies))
+
+        db["movie"].insert_all(movie_rows, pk="id", batch_size=100, ignore=True)  # type: ignore
+
+    def handle_collected_movie_entry(self, entry: CollectedMovie) -> CollectedMovieRow:
+        cl_movie_row = self.entry_to_collected_movie_row(entry)
+        return cl_movie_row
