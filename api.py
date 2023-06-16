@@ -5,7 +5,9 @@ from datetime import datetime
 
 import requests
 
-HOST = "https://api.trakt.tv/users"
+from trakt import EpisodeSearch, Season
+
+HOST = "https://api.trakt.tv"
 USER_AGENT = "trakt-to-sqlite"
 CLIENT_ID = os.environ["TRAKT_API_CLIENT_ID"]
 MAXSIZE = 100000
@@ -14,13 +16,11 @@ MAXSIZE = 100000
 class TraktRequest:
     def __init__(self, username: str, api_key: str = CLIENT_ID):
         self.username = username
-        self.url = f"{HOST}/{self.username}"
+        self.backup_url = f"{HOST}/users/{self.username}"
         self.root_path = os.getcwd()
         timestamp = datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S")
         self.backup_dir = f"backup\\{self.username}\\{timestamp}"
         self.backup_path = os.path.join(self.root_path, self.backup_dir)
-        if not os.path.isdir(self.backup_path):
-            os.makedirs(self.backup_path)
         self.headers = {
             "Content-Type": "application/json",
             "trakt-api-version": "2",
@@ -28,10 +28,39 @@ class TraktRequest:
             "user-agent": USER_AGENT,
         }
 
+    def get_show_data_from_episode_id(self, id: int) -> EpisodeSearch:
+        URL = f"{HOST}/search/trakt/{id}?type=episode"
+        print(f"Fetching : {URL}")
+        r = requests.get(URL, headers=self.headers)
+
+        if r.status_code == 200:
+            data = r.content.decode()
+            return json.loads(data[1:-1])
+        else:
+            raise Exception(
+                f"An error as occurred with code: {r.status_code} for operation"
+                " search episode data."
+            )
+
+    def get_seasons_data_from_show_id(self, show_id: int) -> list[Season]:
+        URL = f"{HOST}/shows/{show_id}/seasons?extended=episodes"
+        print(f"Fetching : {URL}")
+        r = requests.get(URL, headers=self.headers)
+
+        if r.status_code == 200:
+            data = r.content.decode()
+            seasons: list[Season] = json.loads(data)
+            return seasons
+        else:
+            raise Exception(
+                f"An error as occurred with code: {r.status_code} for operation"
+                " search episode data."
+            )
+
     def fetch(self, item: str, endpoint: str):
-        print(f"Fetching : {self.url}/{item}/{endpoint}")
+        print(f"Fetching : {self.backup_url}/{item}/{endpoint}")
         response = requests.get(
-            f"{self.url}/{item}/{endpoint}?limit={MAXSIZE}", headers=self.headers
+            f"{self.backup_url}/{item}/{endpoint}?limit={MAXSIZE}", headers=self.headers
         )
 
         if response.status_code == 404:
@@ -47,11 +76,14 @@ class TraktRequest:
             print(f"No {endpoint} found in {item}")
             return
 
+        if not os.path.isdir(self.backup_path):
+            os.makedirs(self.backup_path)
+
         out_file_path = os.path.join(self.backup_path, f"{item}_{endpoint}.json")
         print(f"Writing to : {out_file_path}")
         with open(out_file_path, "w") as fh:
             fh.write(json.dumps(response.json(), separators=(",", ":"), indent=4))
-        print(f"Completed : {self.url}/{item}/{endpoint}")
+        print(f"Completed : {self.backup_url}/{item}/{endpoint}")
 
     def get_watched_movies(self):
         self.fetch("watched", "movies")
@@ -118,8 +150,3 @@ class TraktRequest:
         self.get_shows_collection()
         self.get_user_stats()
         print(f"Completed all operations in {round(time.time() - start, 2)} seconds.")
-
-
-if __name__ == "__main__":
-    t = TraktRequest(username="foo")
-    t.backup()
