@@ -16,7 +16,7 @@ class ShowIDs(TypedDict):
 
 
 class Show(ShowBare, ShowIDs):
-    ids: ShowIDs
+    ids: ShowIDs  # type: ignore
 
 
 class EpisodeBare(TypedDict):
@@ -53,7 +53,7 @@ class Season(SeasonBare, SeasonIDs, Episode):
     episodes: list[Episode]
 
 
-class EpisodeSearch(Episode, Show):
+class EpisodeSearch(Episode, Show):  # type: ignore
     type: Literal["episode"]
     score: int
     episode: Episode
@@ -102,7 +102,7 @@ class WatchedEpisode(Episode):
     last_updated_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class HistoryEpisode(Episode, Show):
+class HistoryEpisode(Episode, Show):  # type: ignore
     id: int
     episode: Episode
     show: Show
