@@ -97,3 +97,30 @@ class Datastore:
         self.db.add_foreign_keys(
             [("collected", "media_id", "movie", "id"), ("collected", "media_id", "episode", "id")]
         )
+
+    # Single table for all collected entities. (Movies and Episodes.)
+    def create_ratings(self):
+        self.db["ratings"].create(  # type: ignore
+            {
+                "id": str,
+                "type": str,  # movie / episode / show
+                "media_id": int,  # corresponding primary key of the entity.
+                "rating": int,
+                "rated_at": str,
+            },
+            pk="id",
+            not_null={"id", "media_id", "rating"},
+            # foreign_keys=["media_id"],
+        )
+
+        self.db.add_foreign_keys(
+            [
+                ("ratings", "media_id", "movie", "id"),
+                ("ratings", "media_id", "episode", "id"),
+                ("ratings", "media_id", "show", "id"),
+            ]
+        )
+
+    def assert_tables(self) -> bool:
+        required_tables = ["show", "episode", "movie", "watchlog", "collected", "ratings"]
+        return all([True if table in self.db.table_names() else False for table in required_tables])

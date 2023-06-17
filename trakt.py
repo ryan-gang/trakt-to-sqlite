@@ -1,6 +1,11 @@
 from typing import Literal, Optional, TypedDict
 
 
+class ShowBare(TypedDict):
+    title: str  # "Parks and Recreation"
+    year: int  # 2009
+
+
 class ShowIDs(TypedDict):
     trakt: int  # 406221
     slug: str  # "parks-and-recreation"
@@ -10,15 +15,138 @@ class ShowIDs(TypedDict):
     tvrage: Optional[int]  # None
 
 
-class ShowBare(TypedDict):
-    title: str  # "Parks and Recreation"
-    year: int  # 2009
-
-
 class Show(ShowBare, ShowIDs):
     ids: ShowIDs
 
 
+class EpisodeBare(TypedDict):
+    season: int  # 2
+    number: int  # 5
+    title: str  # "Sister City"
+
+
+class EpisodeIDs(TypedDict):
+    trakt: int  # 406221
+    tvdb: int  # 1088061
+    imdb: str  # "tt1504148"
+    tmdb: int  # 397635
+    tvrage: Optional[int]  # None
+
+
+class Episode(EpisodeBare, EpisodeIDs):
+    ids: EpisodeIDs
+
+
+# A season of episodes.
+class SeasonBare(TypedDict):
+    number: int  # Season number
+
+
+class SeasonIDs(TypedDict):
+    trakt: int  # 406221
+    tvdb: int  # 1088061
+    tmdb: int  # 397635
+    tvrage: Optional[int]  # None
+
+
+class Season(SeasonBare, SeasonIDs, Episode):
+    episodes: list[Episode]
+
+
+class EpisodeSearch(Episode, Show):
+    type: Literal["episode"]
+    score: int
+    episode: Episode
+    show: Show
+
+
+class MovieBare(TypedDict):
+    title: str  # "A Quiet Place"
+    year: int  # 2018
+
+
+class MovieIDs(TypedDict):
+    trakt: int  # 406221
+    slug: str  # "a-quiet-place-2018"
+    imdb: str  # "tt1504148"
+    tmdb: int  # 397635
+
+
+class Movie(MovieBare, MovieIDs):
+    ids: MovieIDs
+
+
+class CollectedEpisode(Episode):
+    collected_at: bool  # "2019-09-24T09:03:22.000Z"
+    updated_at: float  # "2019-09-24T09:03:22.000Z"
+    episode: Episode
+
+
+class RatedEpisode(Episode):
+    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rating: int  # 9
+    type: Literal["episode"]
+    episode: Episode
+
+
+class RatedShow(Show):
+    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rating: int  # 9
+    type: Literal["show"]
+    show: Show
+
+
+class WatchedEpisode(Episode):
+    plays: int  # 10
+    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class HistoryEpisode(Episode, Show):
+    id: int
+    episode: Episode
+    show: Show
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    action: str  # watch
+    type: str  # episode
+
+
+class CollectedShow(Show):
+    last_collected_at: float  # "2019-09-24T09:03:22.000Z"
+    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
+    show: Show
+
+
+class CollectedMovie(Movie):
+    collected_at: float  # "2019-09-24T09:03:22.000Z"
+    updated_at: float  # "2019-09-24T09:03:22.000Z"
+    movie: Movie
+
+
+class RatedMovie(Movie):
+    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rating: int  # 9
+    type: Literal["movie"]
+    movie: Movie
+
+
+class WatchedMovie(Movie):
+    id: int  # Primary Key
+    movie_id: int
+    total_plays: int  # 10
+    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class HistoryMovie(Movie):
+    id: int
+    movie: Movie
+    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    action: str  # watch
+    type: str  # movie
+
+
+####################################################################################################
+# SQLITE ROW DATACLASSES.
 class ShowRow(TypedDict):
     type: Literal["show"]
     id: int  # ids.trakt, will be treated as primary key.
@@ -30,24 +158,6 @@ class ShowRow(TypedDict):
     imdb_id: str  # "tt1266020"
     tmdb_id: int  # 8592
     tvrage_id: Optional[int]  # 21686
-
-
-class EpisodeIDs(TypedDict):
-    trakt: int  # 406221
-    tvdb: int  # 1088061
-    imdb: str  # "tt1504148"
-    tmdb: int  # 397635
-    tvrage: Optional[int]  # None
-
-
-class EpisodeBare(TypedDict):
-    season: int  # 2
-    number: int  # 5
-    title: str  # "Sister City"
-
-
-class Episode(EpisodeBare, EpisodeIDs):
-    ids: EpisodeIDs
 
 
 class EpisodeRow(TypedDict):
@@ -64,69 +174,6 @@ class EpisodeRow(TypedDict):
     tvrage_id: Optional[int]  # None
 
 
-class CollectedEpisode(Episode):
-    collected_at: bool  # "2019-09-24T09:03:22.000Z"
-    updated_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class CollectedEpisodeRow(TypedDict):
-    row_id: str  # Primary Key
-    episode_id: int
-    collected_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class RatedEpisode(Episode):
-    id: int  # Primary Key
-    episode_id: int
-    rating: int  # 9
-    rated_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class WatchedEpisode(Episode):
-    plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
-    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class WatchedEpisodeRow(TypedDict):
-    id: int  # Primary Key
-    episode_id: int
-    total_plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class HistoryEpisode(Episode, Show):
-    id: int
-    episode: Episode
-    show: Show
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
-    action: str  # watch
-    type: str  # episode
-
-
-class HistoryEpisodeRow(TypedDict):
-    id: int  # Primary Key
-    type: Literal["episode"]
-    media_id: int
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
-
-
-class MovieIDs(TypedDict):
-    trakt: int  # 406221
-    slug: str  # "a-quiet-place-2018"
-    imdb: str  # "tt1504148"
-    tmdb: int  # 397635
-
-
-class MovieBare(TypedDict):
-    title: str  # "A Quiet Place"
-    year: int  # 2018
-
-
-class Movie(MovieBare, MovieIDs):
-    ids: MovieIDs
-
-
 class MovieRow(TypedDict):
     type: Literal["movie"]
     id: int  # ids.trakt, will be treated as primary key.
@@ -138,41 +185,55 @@ class MovieRow(TypedDict):
     tmdb_id: int  # 447332
 
 
-class HistoryMovie(Movie):
-    id: int
-    movie: Movie
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
-    action: str  # watch
-    type: str  # movie
+class CollectedMediaRow(TypedDict):
+    # id: str  # Primary Key
+    media_id: int
+    collected_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class HistoryMovieRow(TypedDict):
-    id: int  # Primary Key
+class CollectedEpisodeRow(CollectedMediaRow):
+    type: Literal["episode"]
+
+
+class CollectedMovieRow(CollectedMediaRow):
     type: Literal["movie"]
+
+
+class WatchedEpisodeRow(TypedDict):
+    id: int  # Primary Key
+    episode_id: int
+    total_plays: int  # 10
+    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+
+
+class HistoryMediaRow(TypedDict):
+    id: int  # Primary Key
     media_id: int
     watched_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class CollectedMovieRow(TypedDict):
-    row_id: str  # Primary Key
-    movie_id: int
-    collected_at: float  # "2019-09-24T09:03:22.000Z"
+class HistoryEpisodeRow(HistoryMediaRow):
+    type: Literal["episode"]
 
 
-class CollectedMovie(Movie):
-    collected_at: float  # "2019-09-24T09:03:22.000Z"
-    updated_at: float  # "2019-09-24T09:03:22.000Z"
+class HistoryMovieRow(HistoryMediaRow):
+    type: Literal["movie"]
 
 
-class RatedMovie(Movie):
-    id: int  # Primary Key
-    movie_id: int
-    rating: int  # 9
+class RatedMediaRow(TypedDict):
+    # id: str  # Primary Key : will be auto generated while writing it to db.
+    media_id: int
+    rating: int
     rated_at: float  # "2019-09-24T09:03:22.000Z"
 
 
-class WatchedMovie(Movie):
-    id: int  # Primary Key
-    movie_id: int
-    total_plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+class RatedEpisodeRow(RatedMediaRow):
+    type: Literal["episode"]
+
+
+class RatedMovieRow(RatedMediaRow):
+    type: Literal["movie"]
+
+
+class RatedShowRow(RatedMediaRow):
+    type: Literal["show"]
