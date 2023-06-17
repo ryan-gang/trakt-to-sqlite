@@ -163,7 +163,7 @@ class Collected:
         return Commons().episode_to_episode_row(entry, show_id)
 
     def handle_collected_episodes_prerequisites(
-        self, show_data: list[CollectedShow], db: Database, username: str
+        self, show_data: list[CollectedShow], db: Database, api: TraktRequest
     ) -> None:
         c = Commons()
 
@@ -177,8 +177,6 @@ class Collected:
 
         db["show"].insert_all(show_rows, pk="id", batch_size=100, ignore=True)  # type: ignore
 
-        # TODO Send api() to method.
-        api = TraktRequest(username="tinydino")
         for show_id in show_ids:
             seasons = api.get_seasons_data_from_show_id(show_id)
             episodes = c.multiple_seasons_to_list_episode_row(seasons)
