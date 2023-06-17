@@ -11,6 +11,7 @@ HOST = "https://api.trakt.tv"
 USER_AGENT = "trakt-to-sqlite"
 CLIENT_ID = os.environ["TRAKT_API_CLIENT_ID"]
 MAXSIZE = 100000
+WAIT_TIME = 1  # second
 
 
 class TraktRequest:
@@ -150,3 +151,10 @@ class TraktRequest:
         self.get_shows_collection()
         self.get_user_stats()
         print(f"Completed all operations in {round(time.time() - start, 2)} seconds.")
+
+    def test_connection(self) -> bool:
+        response = requests.get(f"{self.backup_url}/stats", headers=self.headers)
+        return response.status_code == 200
+
+    def wait(self):
+        time.sleep(WAIT_TIME)

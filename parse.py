@@ -28,6 +28,8 @@ from trakt import (
     ShowRow,
 )
 
+WAIT_TIME = 1
+
 
 class Commons:
     def episode_to_episode_row(self, entry: Episode, show_id: int) -> EpisodeRow:
@@ -110,7 +112,7 @@ class History:
         show_id = self.get_show_id_from_entry(entry)
         ep_row = c.episode_to_episode_row(self.entry_to_episode(entry), show_id)
         s_row = c.show_to_show_row(self.entry_to_show(entry))
-        return (h_ep_row, ep_row, s_row)
+        return h_ep_row, ep_row, s_row
 
     # Parse API Data, history_movies to sqlite rows.
     def entry_to_history_movie_row(self, entry: HistoryMovie) -> HistoryMovieRow:
@@ -131,7 +133,7 @@ class History:
         c = Commons()
         h_m_row = self.entry_to_history_movie_row(entry)
         m_row = c.movie_to_movie_row(self.entry_to_movie(entry))
-        return (h_m_row, m_row)
+        return h_m_row, m_row
 
 
 class Collected:
@@ -187,6 +189,7 @@ class Collected:
                 batch_size=100,  # type: ignore
                 ignore=True,  # type: ignore
             )
+            api.wait()
 
     def handle_collected_episode_entry(self, entry: CollectedEpisode) -> CollectedEpisodeRow:
         cl_episode_row = self.entry_to_collected_episode_row(entry)
