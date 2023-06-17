@@ -14,10 +14,10 @@ MAXSIZE = 100000
 
 
 class TraktRequest:
-    def __init__(self, username: str, api_key: str = CLIENT_ID):
+    def __init__(self, username: str, backup_path: str, api_key: str = CLIENT_ID):
         self.username = username
         self.backup_url = f"{HOST}/users/{self.username}"
-        self.root_path = os.getcwd()
+        self.root_path = backup_path
         timestamp = datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S")
         self.backup_dir = f"backup\\{self.username}\\{timestamp}"
         self.backup_path = os.path.join(self.root_path, self.backup_dir)
