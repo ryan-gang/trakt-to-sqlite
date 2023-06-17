@@ -45,18 +45,6 @@ class Datastore:
             foreign_keys=["show_id"],
         )
 
-    def create_episode_watchlog(self):
-        self.db["episode_watchlog"].create(  # type: ignore
-            {
-                "id": int,
-                "episode_id": int,
-                "watched_at": str,
-            },
-            pk="id",
-            not_null={"id", "episode_id", "watched_at"},
-            foreign_keys=["episode_id"],
-        )
-
     def create_movie(self):
         self.db["movie"].create(  # type: ignore
             {
@@ -74,24 +62,13 @@ class Datastore:
             defaults={"type": "movie"},
         )
 
-    def create_movie_watchlog(self):
-        self.db["movie_watchlog"].create(  # type: ignore
-            {
-                "id": int,
-                "movie_id": int,
-                "watched_at": str,
-            },
-            pk="id",
-            not_null={"id", "movie_id", "watched_at"},
-            foreign_keys=["movie_id"],
-        )
-
+    # Single table for all watched entities. (Movies and Episodes.)
     def create_watchlog(self):
         self.db["watchlog"].create(  # type: ignore
             {
                 "id": int,
                 "type": str,  # movie / episode
-                "media_id": int,
+                "media_id": int,  # corresponding primary key of the entity.
                 "watched_at": str,
             },
             pk="id",
@@ -103,12 +80,13 @@ class Datastore:
             [("watchlog", "media_id", "movie", "id"), ("watchlog", "media_id", "episode", "id")]
         )
 
+    # Single table for all collected entities. (Movies and Episodes.)
     def create_collected(self):
         self.db["collected"].create(  # type: ignore
             {
                 "id": str,
                 "type": str,  # movie / episode
-                "media_id": int,
+                "media_id": int,  # corresponding primary key of the entity.
                 "collected_at": str,
             },
             pk="id",
