@@ -8,6 +8,7 @@ from trakt import (
     CollectedEpisodeRow,
     CollectedMovie,
     CollectedMovieRow,
+    CollectedShow,
     Episode,
     EpisodeRow,
     HistoryEpisode,
@@ -16,10 +17,15 @@ from trakt import (
     HistoryMovieRow,
     Movie,
     MovieRow,
+    RatedEpisode,
+    RatedEpisodeRow,
+    RatedMovie,
+    RatedMovieRow,
+    RatedShow,
+    RatedShowRow,
     Season,
     Show,
     ShowRow,
-    CollectedShow,
 )
 
 
@@ -154,19 +160,7 @@ class Collected:
         return entry["episode"]["ids"]["trakt"]
 
     def entry_to_episode_row(self, entry: Episode, show_id: int) -> EpisodeRow:
-        return {
-            "type": "episode",
-            "id": entry["ids"]["trakt"],
-            "show_id": show_id,
-            "season": entry["season"],
-            "number": entry["number"],
-            "title": entry["title"],
-            "trakt_id": entry["ids"]["trakt"],
-            "tvdb_id": entry["ids"]["tvdb"],
-            "imdb_id": entry["ids"]["imdb"],
-            "tmdb_id": entry["ids"]["tmdb"],
-            "tvrage_id": entry["ids"]["tvrage"],
-        }
+        return Commons().episode_to_episode_row(entry, show_id)
 
     def handle_collected_episodes_prerequisites(
         self, show_data: list[CollectedShow], db: Database, username: str
@@ -183,6 +177,7 @@ class Collected:
 
         db["show"].insert_all(show_rows, pk="id", batch_size=100, ignore=True)  # type: ignore
 
+        # TODO Send api() to method.
         api = TraktRequest(username="tinydino")
         for show_id in show_ids:
             seasons = api.get_seasons_data_from_show_id(show_id)
@@ -211,3 +206,30 @@ class Collected:
     def handle_collected_movie_entry(self, entry: CollectedMovie) -> CollectedMovieRow:
         cl_movie_row = self.entry_to_collected_movie_row(entry)
         return cl_movie_row
+
+
+class Rated:
+    # Parse API Data, rated_episodes to sqlite rows.
+    def entry_to_rated_episode_row(self, entry: RatedEpisode) -> RatedEpisodeRow:
+        return {
+            "media_id": entry["episode"]["ids"]["trakt"],
+            "type": "episode",
+            "rating": entry["rating"],
+            "rated_at": entry["rated_at"],
+        }
+
+    def entry_to_rated_show_row(self, entry: RatedShow) -> RatedShowRow:
+        return {
+            "media_id": entry["show"]["ids"]["trakt"],
+            "type": "show",
+            "rating": entry["rating"],
+            "rated_at": entry["rated_at"],
+        }
+
+    def entry_to_rated_movie_row(self, entry: RatedMovie) -> RatedMovieRow:
+        return {
+            "media_id": entry["movie"]["ids"]["trakt"],
+            "type": "movie",
+            "rating": entry["rating"],
+            "rated_at": entry["rated_at"],
+        }
