@@ -1,11 +1,12 @@
 import argparse
-from sqlite_utils import Database
 import os
-from parse import Collected, Commons
 
-from support import load_json
+from sqlite_utils import Database
+
 from api import TraktRequest
-
+from core import save_collections_files, save_history_files, save_ratings_files
+from parse import Collected, Commons
+from sql_helpers import Datastore
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="trakt-to-sqlite")
@@ -31,24 +32,19 @@ if __name__ == "__main__":
             os.makedirs(PATH)
     username = args.username
     db_path = os.path.join(PATH, f"{username}.db")
-    db = Database(db_path)
+    db: Database = Database(db_path)
+
+    ds = Datastore(db)
+    ds.assert_tables()
 
     cl = Collected()
     c = Commons()
     api = TraktRequest(username, backup_path=PATH)
-    api.backup()
+    api.test_connection()
+    api.test_connection()
+    api.backup()  # Always pull a backup ?
 
-    # HANDLING COLLECTED EPISODES AND MOVIES.
-
-    data = load_json(rf"backup\{username}\collection_episodes.json")
-    shows_data = load_json(rf"backup\{username}\collection_shows.json")
-
-    cl.handle_collected_episodes_prerequisites(shows_data, db, username)
-    c_eps = list(map(cl.handle_collected_episode_entry, data))
-    db["collected"].insert_all(c_eps, hash_id="id", ignore=True)  # type: ignore
-
-    movie_data = load_json(rf"backup\{username}\collection_movies.json")
-
-    cl.handle_collected_movies_prerequisites(movie_data, db)
-    ms = list(map(cl.handle_collected_movie_entry, movie_data))
-    db["collected"].insert_all(ms, hash_id="id", ignore=True)  # type: ignore
+    # Actual saving to sqlite part.
+    save_history_files(db, PATH)
+    save_collections_files(db, PATH, api)
+    save_ratings_files(db, PATH)
