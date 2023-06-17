@@ -2,8 +2,8 @@ from sqlite_utils import Database
 
 
 class Datastore:
-    def __init__(self, username: str) -> None:
-        self.db = Database(f"{username}.db")
+    def __init__(self, db: Database) -> None:
+        self.db = db
 
     def create_show(self):
         self.db["show"].create(  # type: ignore
@@ -45,18 +45,6 @@ class Datastore:
             foreign_keys=["show_id"],
         )
 
-    def create_collected_episode(self):
-        self.db["collected_episode"].create(  # type: ignore
-            {
-                "id": str,  # Will be sha hash of the row.
-                "episode_id": int,
-                "collected_at": float,
-            },
-            pk="id",
-            not_null={"id", "episode_id"},
-            foreign_keys=["episode_id"],
-        )
-
     def create_episode_watchlog(self):
         self.db["episode_watchlog"].create(  # type: ignore
             {
@@ -86,18 +74,6 @@ class Datastore:
             defaults={"type": "movie"},
         )
 
-    def create_collected_movie(self):
-        self.db["collected_movie"].create(  # type: ignore
-            {
-                "id": str,  # Will be sha hash of the row.
-                "movie_id": int,
-                "collected_at": float,
-            },
-            pk="id",
-            not_null={"id", "movie_id"},
-            foreign_keys=["movie_id"],
-        )
-
     def create_movie_watchlog(self):
         self.db["movie_watchlog"].create(  # type: ignore
             {
@@ -125,4 +101,21 @@ class Datastore:
 
         self.db.add_foreign_keys(
             [("watchlog", "media_id", "movie", "id"), ("watchlog", "media_id", "episode", "id")]
+        )
+
+    def create_collected(self):
+        self.db["collected"].create(  # type: ignore
+            {
+                "id": str,
+                "type": str,  # movie / episode
+                "media_id": int,
+                "collected_at": str,
+            },
+            pk="id",
+            not_null={"id", "media_id", "collected_at"},
+            # foreign_keys=["media_id"],
+        )
+
+        self.db.add_foreign_keys(
+            [("collected", "media_id", "movie", "id"), ("collected", "media_id", "episode", "id")]
         )
