@@ -89,9 +89,6 @@ class TraktRequest:
             print(f"No {endpoint} found in {item}")
             return
 
-        if not os.path.isdir(self.backup_path):
-            os.makedirs(self.backup_path)
-
         out_file_path = os.path.join(self.backup_path, f"{item}_{endpoint}.json")
         print(f"Writing to : {out_file_path}")
         with open(out_file_path, "w") as fh:
