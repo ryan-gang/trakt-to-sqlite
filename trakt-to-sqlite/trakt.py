@@ -6,6 +6,10 @@ class Genre(TypedDict):
     slug: str
 
 
+class MediaGenreRow(Genre):
+    media_id: int
+
+
 class ShowBare(TypedDict):
     title: str  # "Parks and Recreation"
     year: int  # 2009
@@ -217,6 +221,36 @@ class ShowRow(TypedDict):
     tvrage_id: Optional[int]  # 21686
 
 
+class ExtendedShowRow(TypedDict):
+    type: Literal["show"]
+    id: int  # ids.trakt, will be treated as primary key.
+    title: str  # "Parks and Recreation"
+    year: int  # 2009
+    trakt_id: int  # 8546
+    trakt_slug: str  # "parks-and-recreation"
+    tvdb_id: int  # 84912
+    imdb_id: str  # "tt1266020"
+    tmdb_id: int  # 8592
+    tvrage_id: Optional[int]  # 21686
+    overview: str
+    first_aired: str
+    runtime: int
+    certification: str
+    network: str
+    country: str
+    trailer: str
+    homepage: str
+    status: str
+    rating: float
+    votes: int
+    comment_count: int
+    language: str
+    aired_episodes: int
+
+
+# Add new genre table.
+
+
 class EpisodeRow(TypedDict):
     type: Literal["episode"]
     id: int  # ids.trakt, will be treated as primary key.
@@ -231,6 +265,26 @@ class EpisodeRow(TypedDict):
     tvrage_id: Optional[int]  # None
 
 
+class ExtendedEpisodeRow(TypedDict):
+    type: Literal["episode"]
+    id: int  # ids.trakt, will be treated as primary key.
+    show_id: int  # Foreign Key
+    season: int  # 2
+    number: int  # 5
+    title: str  # "Sister City"
+    trakt_id: int  # 406221
+    tvdb_id: int  # 1088061
+    imdb_id: str  # "tt1504148"
+    tmdb_id: int  # 397635
+    tvrage_id: Optional[int]  # None
+    overview: str
+    rating: float
+    votes: int
+    comment_count: int
+    first_aired: str
+    runtime: int
+
+
 class MovieRow(TypedDict):
     type: Literal["movie"]
     id: int  # ids.trakt, will be treated as primary key.
@@ -240,6 +294,34 @@ class MovieRow(TypedDict):
     trakt_slug: str  # "a-quiet-place-2018"
     imdb_id: str  # "tt6644200"
     tmdb_id: int  # 447332
+
+
+class ExtendedMovieRow(TypedDict):
+    type: Literal["movie"]
+    id: int  # ids.trakt, will be treated as primary key.
+    title: str  # "A Quiet Place"
+    year: int  # 2018
+    trakt_id: int  # 293955
+    trakt_slug: str  # "a-quiet-place-2018"
+    imdb_id: str  # "tt6644200"
+    tmdb_id: int  # 447332
+
+    tagline: str
+    overview: str
+    released: str
+    runtime: int
+    country: str
+    trailer: str
+    homepage: str
+    status: str
+    rating: float
+    votes: int
+    comment_count: int
+    language: str
+    certification: str
+
+
+# Add genres table.
 
 
 class CollectedMediaRow(TypedDict):
