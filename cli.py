@@ -11,19 +11,35 @@ from sql_helpers import Datastore
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="trakt-to-sqlite")
     parser.add_argument(
-        "--username",
-        "-u",
-        type=str,
+        "username",
         help="Pass the trakt username, for backing up data.",
     )
     parser.add_argument(
-        "--backuppath",
-        "-p",
-        type=str,
+        "path",
         help=(
             "Pass the location where the backed up files will be stored, and the sqlite database"
             " created."
         ),
+    )
+    parser.add_argument(
+        "--resume",
+        "-r",
+        action="store_true",
+        help=(
+            "If backed up files are already present, and it needs to be only ingested into the db."
+        ),
+    )
+    parser.add_argument(
+        "--keep",
+        "-k",
+        action="store_true",
+        help="If backed up files are to be stored, by default they will be deleted.",
+    )
+    parser.add_argument(
+        "--nodb",
+        "-no",
+        action="store_true",
+        help="If backed up files are NOT to be ingested to db, by default they will be ingested.",
     )
 
     args = parser.parse_args()
