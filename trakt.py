@@ -77,7 +77,7 @@ class Movie(MovieBare, MovieIDs):
 
 
 class CollectedEpisode(Episode):
-    collected_at: bool  # "2019-09-24T09:03:22.000Z"
+    collected_at: float  # "2019-09-24T09:03:22.000Z"
     updated_at: float  # "2019-09-24T09:03:22.000Z"
     episode: Episode
 

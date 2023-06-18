@@ -177,11 +177,12 @@ pyrightconfig.json
 
 # Personal additions.
 *.db
+*.db-journal
 *.json
 .history/
 backup/
 reddit*/
-tests/
+tests_depre/
 pyproject.toml
 CHANGELOG.md
 README.md
