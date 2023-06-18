@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-from trakt import EpisodeSearch, Season
+from trakt import EpisodeSearch, Genre, Season
 
 HOST = "https://api.trakt.tv"
 USER_AGENT = "trakt-to-sqlite"
@@ -59,6 +59,13 @@ class TraktRequest:
     def get_movie_data(self, movie_slug: str):
         URL = f"{HOST}/movies/{movie_slug}?extended=full"
         return self.get_resource(URL)
+
+    def get_genre_data(self) -> list[Genre]:
+        url = f"{HOST}/genres/movies"
+        movie_genres: list[Genre] = self.get_resource(url)
+        url = f"{HOST}/genres/shows"
+        show_genres: list[Genre] = self.get_resource(url)
+        return [*movie_genres, *show_genres]
 
     def fetch(self, item: str, endpoint: str):
         print(f"Fetching : {self.backup_url}/{item}/{endpoint}")

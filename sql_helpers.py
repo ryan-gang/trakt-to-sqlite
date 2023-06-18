@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Generator, Any
 from sqlite_utils import Database
 
 
@@ -172,3 +172,24 @@ class Datastore:
             if table not in self.db.table_names():
                 table_creation_func = self.table_mapping[table]
                 table_creation_func()
+
+    def get_shows_in_db(self) -> Generator[dict[str, str], Any, Any]:
+        return self.db["show"].rows  # type: ignore
+
+    def get_episodes_join_shows_in_db(self) -> Generator[dict[str, str], Any, Any]:
+        return self.db.query("select E.id AS eid, E.season AS eseason, E.number AS enumber, E.title AS etitle, S.id, S.title, S.year, S.trakt_slug from episode E INNER JOIN show S on E.show_id = S.id")  # type: ignore
+
+    def get_movies_in_db(self) -> Generator[dict[str, str], Any, Any]:
+        return self.db["movie"].rows  # type: ignore
+
+    # Single table for all collected entities. (Movies and Episodes.)
+    def create_genre(self):
+        self.db["genre"].create(  # type: ignore
+            {
+                "id": str,
+                "name": str,  # genre name
+                "slug": str,  # genre slug
+            },
+            pk="id",
+            not_null={"id", "name"},
+        )

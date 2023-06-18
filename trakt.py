@@ -269,3 +269,8 @@ class WatchlistShowRow(WatchlistMediaRow):
 
 class WatchlistMovieRow(WatchlistMediaRow):
     type: Literal["movie"]
+
+
+class Genre(TypedDict):
+    name: str
+    slug: str
