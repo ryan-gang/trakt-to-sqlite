@@ -77,20 +77,20 @@ class Movie(MovieBare, MovieIDs):
 
 
 class CollectedEpisode(Episode):
-    collected_at: bool  # "2019-09-24T09:03:22.000Z"
-    updated_at: float  # "2019-09-24T09:03:22.000Z"
+    collected_at: str  # "2019-09-24T09:03:22.000Z"
+    updated_at: str  # "2019-09-24T09:03:22.000Z"
     episode: Episode
 
 
 class RatedEpisode(Episode):
-    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rated_at: str  # "2019-09-24T09:03:22.000Z"
     rating: int  # 9
     type: Literal["episode"]
     episode: Episode
 
 
 class RatedShow(Show):
-    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rated_at: str  # "2019-09-24T09:03:22.000Z"
     rating: int  # 9
     type: Literal["show"]
     show: Show
@@ -98,33 +98,33 @@ class RatedShow(Show):
 
 class WatchedEpisode(Episode):
     plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
-    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
+    last_watched_at: str  # "2019-09-24T09:03:22.000Z"
+    last_updated_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class HistoryEpisode(Episode, Show):  # type: ignore
     id: int
     episode: Episode
     show: Show
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    watched_at: str  # "2019-09-24T09:03:22.000Z"
     action: str  # watch
     type: str  # episode
 
 
 class CollectedShow(Show):
-    last_collected_at: float  # "2019-09-24T09:03:22.000Z"
-    last_updated_at: float  # "2019-09-24T09:03:22.000Z"
+    last_collected_at: str  # "2019-09-24T09:03:22.000Z"
+    last_updated_at: str  # "2019-09-24T09:03:22.000Z"
     show: Show
 
 
 class CollectedMovie(Movie):
-    collected_at: float  # "2019-09-24T09:03:22.000Z"
-    updated_at: float  # "2019-09-24T09:03:22.000Z"
+    collected_at: str  # "2019-09-24T09:03:22.000Z"
+    updated_at: str  # "2019-09-24T09:03:22.000Z"
     movie: Movie
 
 
 class RatedMovie(Movie):
-    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rated_at: str  # "2019-09-24T09:03:22.000Z"
     rating: int  # 9
     type: Literal["movie"]
     movie: Movie
@@ -134,13 +134,13 @@ class WatchedMovie(Movie):
     id: int  # Primary Key
     movie_id: int
     total_plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+    last_watched_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class HistoryMovie(Movie):
     id: int
     movie: Movie
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    watched_at: str  # "2019-09-24T09:03:22.000Z"
     action: str  # watch
     type: str  # movie
 
@@ -188,7 +188,7 @@ class MovieRow(TypedDict):
 class CollectedMediaRow(TypedDict):
     # id: str  # Primary Key
     media_id: int
-    collected_at: float  # "2019-09-24T09:03:22.000Z"
+    collected_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class CollectedEpisodeRow(CollectedMediaRow):
@@ -203,13 +203,13 @@ class WatchedEpisodeRow(TypedDict):
     id: int  # Primary Key
     episode_id: int
     total_plays: int  # 10
-    last_watched_at: float  # "2019-09-24T09:03:22.000Z"
+    last_watched_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class HistoryMediaRow(TypedDict):
     id: int  # Primary Key
     media_id: int
-    watched_at: float  # "2019-09-24T09:03:22.000Z"
+    watched_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class HistoryEpisodeRow(HistoryMediaRow):
@@ -224,7 +224,7 @@ class RatedMediaRow(TypedDict):
     # id: str  # Primary Key : will be auto generated while writing it to db.
     media_id: int
     rating: int
-    rated_at: float  # "2019-09-24T09:03:22.000Z"
+    rated_at: str  # "2019-09-24T09:03:22.000Z"
 
 
 class RatedEpisodeRow(RatedMediaRow):
@@ -237,3 +237,35 @@ class RatedMovieRow(RatedMediaRow):
 
 class RatedShowRow(RatedMediaRow):
     type: Literal["show"]
+
+
+class WatchlistMovie(Movie):
+    rank: int
+    id: int
+    listed_at: str
+    notes: str
+    type: Literal["movie"]
+    movie: Movie
+
+
+class WatchlistShow(Show):
+    rank: int
+    id: int
+    listed_at: str
+    notes: str
+    type: Literal["show"]
+    show: Show
+
+
+class WatchlistMediaRow(TypedDict):
+    id: int  # Primary Key
+    media_id: int
+    watchlisted_at: str  # "2019-09-24T09:03:22.000Z"
+
+
+class WatchlistShowRow(WatchlistMediaRow):
+    type: Literal["show"]
+
+
+class WatchlistMovieRow(WatchlistMediaRow):
+    type: Literal["movie"]

@@ -1,9 +1,29 @@
+from typing import Callable
 from sqlite_utils import Database
 
 
 class Datastore:
     def __init__(self, db: Database) -> None:
         self.db = db
+        self.required_tables = [
+            "show",
+            "episode",
+            "movie",
+            "watchlog",
+            "collected",
+            "ratings",
+            "watchlist",
+        ]
+
+        self.table_mapping: dict[str, Callable[[], None]] = {
+            "show": self.create_show,
+            "episode": self.create_episode,
+            "movie": self.create_movie,
+            "watchlog": self.create_watchlog,
+            "collected": self.create_collected,
+            "ratings": self.create_ratings,
+            "watchlist": self.create_watchlist,
+        }
 
     def create_show(self):
         self.db["show"].create(  # type: ignore
@@ -121,6 +141,34 @@ class Datastore:
             ]
         )
 
+    # Single table for all watchlist-ed entities. (Movies and Shows.)
+    def create_watchlist(self):
+        self.db["watchlist"].create(  # type: ignore
+            {
+                "id": int,
+                "type": str,  # movie / episode / show
+                "media_id": int,  # corresponding primary key of the entity.
+                "watchlisted_at": str,
+            },
+            pk="id",
+            not_null={"id", "media_id", "watchlisted_at"},
+            # foreign_keys=["media_id"],
+        )
+
+        self.db.add_foreign_keys(
+            [
+                ("watchlist", "media_id", "movie", "id"),
+                ("watchlist", "media_id", "show", "id"),
+            ]
+        )
+
     def assert_tables(self) -> bool:
-        required_tables = ["show", "episode", "movie", "watchlog", "collected", "ratings"]
-        return all([True if table in self.db.table_names() else False for table in required_tables])
+        return all(
+            [True if table in self.db.table_names() else False for table in self.required_tables]
+        )
+
+    def create_tables(self) -> None:
+        for table in self.required_tables:
+            if table not in self.db.table_names():
+                table_creation_func = self.table_mapping[table]
+                table_creation_func()

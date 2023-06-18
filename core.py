@@ -7,7 +7,7 @@ import os
 from sqlite_utils import Database
 
 from api import TraktRequest
-from parse import Collected, History, Rated
+from parse import Collected, History, Rated, Watchlist
 from support import load_json
 
 
@@ -112,3 +112,39 @@ def save_history_files(db: Database, PATH: str):
 
             db["movie"].insert_all(movies, pk="id", ignore=True, batch_size=100)  # type: ignore
             db["watchlog"].insert_all(watchlog, ignore=True, batch_size=100)  # type: ignore
+
+
+def save_watchlist_files(db: Database, PATH: str):
+    """
+    `PATH` should contain all the backed up json files from trakt.
+    This method takes that `path`, and a `sqlite connection` to parse the files
+    that contain `watchlist` in their name and writes them to the `ratings` table in the db.
+    """
+    files = os.listdir(PATH)
+    files = list(filter(lambda x: "watchlist" in x, files))
+
+    w = Watchlist()
+
+    for file_name in files:
+        file_path = os.path.join(PATH, file_name)
+        if "shows" in file_name:
+            data = load_json(file_path)
+            watchlist_and_shows = list(map(w.handle_watchlist_show_entry, data))
+            watchlist = [i[0] for i in watchlist_and_shows]
+            shows = [i[1] for i in watchlist_and_shows]
+
+            db["show"].insert_all(shows, pk="id", ignore=True, batch_size=100)  # type: ignore
+            db["watchlist"].insert_all(  # type: ignore
+                watchlist, pk="id", ignore=True, batch_size=100  # type: ignore
+            )
+
+        elif "movies" in file_name:
+            data = load_json(file_path)
+            watchlist_and_movies = list(map(w.handle_watchlist_movie_entry, data))
+            watchlist = [i[0] for i in watchlist_and_movies]
+            movies = [i[1] for i in watchlist_and_movies]
+
+            db["movie"].insert_all(movies, pk="id", ignore=True, batch_size=100)  # type: ignore
+            db["watchlist"].insert_all(  # type: ignore
+                watchlist, pk="id", ignore=True, batch_size=100  # type: ignore
+            )
