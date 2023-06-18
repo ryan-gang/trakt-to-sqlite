@@ -161,7 +161,7 @@ class Collected:
         db["show"].insert_all(show_rows, pk="id", batch_size=100, ignore=True)  # type: ignore
 
         for show_id in show_ids:
-            seasons = api.get_seasons_data_from_show_id(show_id)
+            seasons = api.get_season_data(show_id)
             episodes = c.multiple_seasons_to_list_episode_row(seasons)
             db["episode"].insert_all(  # type: ignore
                 episodes,

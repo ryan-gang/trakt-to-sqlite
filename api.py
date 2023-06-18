@@ -51,6 +51,9 @@ class TraktRequest:
         return self.get_resource(URL)
 
     def get_episode_data(self, show_slug: str, show_season: int, show_episode: int):
+        """
+        Fetch extended episode data from Trakt.
+        """
         URL = (
             f"{HOST}/shows/{show_slug}/seasons/{show_season}/episodes/{show_episode}?extended=full"
         )

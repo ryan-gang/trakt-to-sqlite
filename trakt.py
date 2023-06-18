@@ -1,6 +1,11 @@
 from typing import Literal, Optional, TypedDict
 
 
+class Genre(TypedDict):
+    name: str
+    slug: str
+
+
 class ShowBare(TypedDict):
     title: str  # "Parks and Recreation"
     year: int  # 2009
@@ -19,6 +24,27 @@ class Show(ShowBare, ShowIDs):
     ids: ShowIDs  # type: ignore
 
 
+class ExtendedShow(Show):
+    overview: str
+    first_aired: str
+    airs: dict[str, str]
+    runtime: int
+    certification: str
+    network: str
+    country: str
+    trailer: str
+    homepage: str
+    status: str
+    rating: float
+    votes: int
+    comment_count: int
+    updated_at: str
+    language: str
+    available_translations: list[str]
+    genres: list[Genre]
+    aired_episodes: int
+
+
 class EpisodeBare(TypedDict):
     season: int  # 2
     number: int  # 5
@@ -35,6 +61,18 @@ class EpisodeIDs(TypedDict):
 
 class Episode(EpisodeBare, EpisodeIDs):
     ids: EpisodeIDs
+
+
+class ExtendedEpisode(Episode):
+    number_abs: int  # What is this ?
+    overview: str
+    rating: float
+    votes: int
+    comment_count: int
+    first_aired: str
+    updated_at: str
+    available_translations: list[str]
+    runtime: int
 
 
 # A season of episodes.
@@ -74,6 +112,25 @@ class MovieIDs(TypedDict):
 
 class Movie(MovieBare, MovieIDs):
     ids: MovieIDs
+
+
+class ExtendedMovie(Movie):
+    tagline: str
+    overview: str
+    released: str
+    runtime: int
+    country: str
+    trailer: str
+    homepage: str
+    status: str
+    rating: float
+    votes: int
+    comment_count: int
+    updated_at: str
+    language: str
+    available_translations: list[str]
+    genres: list[Genre]
+    certification: str
 
 
 class CollectedEpisode(Episode):
@@ -269,8 +326,3 @@ class WatchlistShowRow(WatchlistMediaRow):
 
 class WatchlistMovieRow(WatchlistMediaRow):
     type: Literal["movie"]
-
-
-class Genre(TypedDict):
-    name: str
-    slug: str
