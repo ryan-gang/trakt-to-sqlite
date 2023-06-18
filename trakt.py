@@ -237,3 +237,35 @@ class RatedMovieRow(RatedMediaRow):
 
 class RatedShowRow(RatedMediaRow):
     type: Literal["show"]
+
+
+class WatchlistMovie(Movie):
+    rank: int
+    id: int
+    listed_at: str
+    notes: str
+    type: Literal["movie"]
+    movie: Movie
+
+
+class WatchlistShow(Show):
+    rank: int
+    id: int
+    listed_at: str
+    notes: str
+    type: Literal["show"]
+    show: Show
+
+
+class WatchlistMediaRow(TypedDict):
+    id: int  # Primary Key
+    media_id: int
+    watchlisted_at: str  # "2019-09-24T09:03:22.000Z"
+
+
+class WatchlistShowRow(WatchlistMediaRow):
+    type: Literal["show"]
+
+
+class WatchlistMovieRow(WatchlistMediaRow):
+    type: Literal["movie"]

@@ -121,6 +121,35 @@ class Datastore:
             ]
         )
 
+    # Single table for all watchlist-ed entities. (Movies and Shows.)
+    def create_watchlist(self):
+        self.db["watchlist"].create(  # type: ignore
+            {
+                "id": int,
+                "type": str,  # movie / episode / show
+                "media_id": int,  # corresponding primary key of the entity.
+                "watchlisted_at": str,
+            },
+            pk="id",
+            not_null={"id", "media_id", "watchlisted_at"},
+            # foreign_keys=["media_id"],
+        )
+
+        self.db.add_foreign_keys(
+            [
+                ("watchlist", "media_id", "movie", "id"),
+                ("watchlist", "media_id", "show", "id"),
+            ]
+        )
+
     def assert_tables(self) -> bool:
-        required_tables = ["show", "episode", "movie", "watchlog", "collected", "ratings"]
+        required_tables = [
+            "show",
+            "episode",
+            "movie",
+            "watchlog",
+            "collected",
+            "ratings",
+            "watchlist",
+        ]
         return all([True if table in self.db.table_names() else False for table in required_tables])

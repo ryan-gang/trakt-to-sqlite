@@ -3,32 +3,13 @@ from itertools import repeat
 from sqlite_utils import Database
 
 from api import TraktRequest
-from trakt import (
-    CollectedEpisode,
-    CollectedEpisodeRow,
-    CollectedMovie,
-    CollectedMovieRow,
-    CollectedShow,
-    Episode,
-    EpisodeRow,
-    HistoryEpisode,
-    HistoryEpisodeRow,
-    HistoryMovie,
-    HistoryMovieRow,
-    Movie,
-    MovieRow,
-    RatedEpisode,
-    RatedEpisodeRow,
-    RatedMovie,
-    RatedMovieRow,
-    RatedShow,
-    RatedShowRow,
-    Season,
-    Show,
-    ShowRow,
-)
-
-WAIT_TIME = 1
+from trakt import (CollectedEpisode, CollectedEpisodeRow, CollectedMovie,
+                   CollectedMovieRow, CollectedShow, Episode, EpisodeRow,
+                   HistoryEpisode, HistoryEpisodeRow, HistoryMovie,
+                   HistoryMovieRow, Movie, MovieRow, RatedEpisode,
+                   RatedEpisodeRow, RatedMovie, RatedMovieRow, RatedShow,
+                   RatedShowRow, Season, Show, ShowRow, WatchlistMovie,
+                   WatchlistMovieRow, WatchlistShow, WatchlistShowRow)
 
 
 class Commons:
@@ -234,3 +215,48 @@ class Rated:
             "rating": entry["rating"],
             "rated_at": entry["rated_at"],
         }
+
+
+class Watchlist:
+    # Parse API Data, watchlist_shows to sqlite rows.
+    def entry_to_watchlisted_show_row(self, entry: WatchlistShow) -> WatchlistShowRow:
+        return {
+            "id": entry["id"],
+            "media_id": entry["show"]["ids"]["trakt"],
+            "type": "show",
+            "watchlisted_at": entry["listed_at"],
+        }
+
+    def entry_to_watchlisted_movie_row(self, entry: WatchlistMovie) -> WatchlistMovieRow:
+        return {
+            "id": entry["id"],
+            "media_id": entry["movie"]["ids"]["trakt"],
+            "type": "movie",
+            "watchlisted_at": entry["listed_at"],
+        }
+
+    def entry_to_show(self, entry: WatchlistShow) -> Show:
+        return entry["show"]
+
+    def entry_to_movie(self, entry: WatchlistMovie) -> Movie:
+        return entry["movie"]
+
+    def handle_watchlist_show_entry(
+        self,
+        entry: WatchlistShow,
+    ) -> tuple[WatchlistShowRow, ShowRow]:
+        c = Commons()
+        show = self.entry_to_show(entry)
+        show_row = c.show_to_show_row(show)
+        watch_show_row = self.entry_to_watchlisted_show_row(entry)
+        return watch_show_row, show_row
+
+    def handle_watchlist_movie_entry(
+        self,
+        entry: WatchlistMovie,
+    ) -> tuple[WatchlistMovieRow, MovieRow]:
+        c = Commons()
+        movie = self.entry_to_movie(entry)
+        movie_row = c.movie_to_movie_row(movie)
+        watch_movie_row = self.entry_to_watchlisted_movie_row(entry)
+        return watch_movie_row, movie_row
