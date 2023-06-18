@@ -1,9 +1,29 @@
+from typing import Callable
 from sqlite_utils import Database
 
 
 class Datastore:
     def __init__(self, db: Database) -> None:
         self.db = db
+        self.required_tables = [
+            "show",
+            "episode",
+            "movie",
+            "watchlog",
+            "collected",
+            "ratings",
+            "watchlist",
+        ]
+
+        self.table_mapping: dict[str, Callable[[], None]] = {
+            "show": self.create_show,
+            "episode": self.create_episode,
+            "movie": self.create_movie,
+            "watchlog": self.create_watchlog,
+            "collected": self.create_collected,
+            "ratings": self.create_ratings,
+            "watchlist": self.create_watchlist,
+        }
 
     def create_show(self):
         self.db["show"].create(  # type: ignore
@@ -143,13 +163,12 @@ class Datastore:
         )
 
     def assert_tables(self) -> bool:
-        required_tables = [
-            "show",
-            "episode",
-            "movie",
-            "watchlog",
-            "collected",
-            "ratings",
-            "watchlist",
-        ]
-        return all([True if table in self.db.table_names() else False for table in required_tables])
+        return all(
+            [True if table in self.db.table_names() else False for table in self.required_tables]
+        )
+
+    def create_tables(self) -> None:
+        for table in self.required_tables:
+            if table not in self.db.table_names():
+                table_creation_func = self.table_mapping[table]
+                table_creation_func()
