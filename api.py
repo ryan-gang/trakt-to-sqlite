@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from typing import Any
 
 import requests
 
@@ -25,39 +26,7 @@ class TraktRequest:
             "user-agent": USER_AGENT,
         }
 
-    def search_for_show(self, id: int) -> EpisodeSearch:
-        URL = f"{HOST}/search/trakt/{id}?type=episode"
-        print(f"Fetching : {URL}")
-        r = requests.get(URL, headers=self.headers)
-
-        if r.status_code == 200:
-            data = r.content.decode()
-            return json.loads(data[1:-1])
-        else:
-            raise Exception(
-                f"An error as occurred with code: {r.status_code} for operation"
-                " search episode data."
-            )
-
-    def get_season_data(self, show_id: int) -> list[Season]:
-        URL = f"{HOST}/shows/{show_id}/seasons?extended=episodes"
-
-        print(f"Fetching : {URL}")
-        r = requests.get(URL, headers=self.headers)
-
-        if r.status_code == 200:
-            data = r.content.decode()
-            seasons: list[Season] = json.loads(data)
-            return seasons
-        else:
-            raise Exception(
-                f"An error as occurred with code: {r.status_code} for operation"
-                " search episode data."
-            )
-
-    def get_show_data(self, show_slug: str):
-        URL = f"{HOST}/shows/{show_slug}?extended=full"
-
+    def get_resource(self, URL: str) -> Any:
         print(f"Fetching : {URL}")
         r = requests.get(URL, headers=self.headers)
 
@@ -66,41 +35,30 @@ class TraktRequest:
             return json.loads(data)
         else:
             raise Exception(
-                f"An error as occurred with code: {r.status_code} for operation search episode"
-                " data."
+                f"An error as occurred with code: {r.status_code} while fetching {URL}."
             )
+
+    def search_for_show(self, id: int) -> EpisodeSearch:
+        URL = f"{HOST}/search/trakt/{id}?type=episode"
+        return self.get_resource(URL)
+
+    def get_season_data(self, show_id: int) -> list[Season]:
+        URL = f"{HOST}/shows/{show_id}/seasons?extended=episodes"
+        return self.get_resource(URL)
+
+    def get_show_data(self, show_slug: str):
+        URL = f"{HOST}/shows/{show_slug}?extended=full"
+        return self.get_resource(URL)
 
     def get_episode_data(self, show_slug: str, show_season: int, show_episode: int):
         URL = (
             f"{HOST}/shows/{show_slug}/seasons/{show_season}/episodes/{show_episode}?extended=full"
         )
-
-        print(f"Fetching : {URL}")
-        r = requests.get(URL, headers=self.headers)
-
-        if r.status_code == 200:
-            data = r.content.decode()
-            return json.loads(data)
-        else:
-            raise Exception(
-                f"An error as occurred with code: {r.status_code} for operation search episode"
-                " data."
-            )
+        return self.get_resource(URL)
 
     def get_movie_data(self, movie_slug: str):
         URL = f"{HOST}/movies/{movie_slug}?extended=full"
-
-        print(f"Fetching : {URL}")
-        r = requests.get(URL, headers=self.headers)
-
-        if r.status_code == 200:
-            data = r.content.decode()
-            return json.loads(data)
-        else:
-            raise Exception(
-                f"An error as occurred with code: {r.status_code} for operation search episode"
-                " data."
-            )
+        return self.get_resource(URL)
 
     def fetch(self, item: str, endpoint: str):
         print(f"Fetching : {self.backup_url}/{item}/{endpoint}")
