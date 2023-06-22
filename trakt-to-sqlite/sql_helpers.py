@@ -1,4 +1,5 @@
 from typing import Callable, Generator, Any
+
 from sqlite_utils import Database
 
 
@@ -13,6 +14,11 @@ class Datastore:
             "collected",
             "ratings",
             "watchlist",
+            "genre",
+            "extended_show",
+            "extended_episode",
+            "extended_movie",
+            "genre_mapping",
         ]
 
         self.table_mapping: dict[str, Callable[[], None]] = {
@@ -23,6 +29,11 @@ class Datastore:
             "collected": self.create_collected,
             "ratings": self.create_ratings,
             "watchlist": self.create_watchlist,
+            "genre": self.create_genre,
+            "extended_episode": self.create_extended_episode,
+            "extended_movie": self.create_extended_movie,
+            "extended_show": self.create_extended_show,
+            "genre_mapping": self.create_genre_mapping,
         }
 
     def create_show(self):
@@ -182,7 +193,7 @@ class Datastore:
     def get_movies_in_db(self) -> Generator[dict[str, str], Any, Any]:
         return self.db["movie"].rows  # type: ignore
 
-    # Single table for all collected entities. (Movies and Episodes.)
+    # Single table for all genres.
     def create_genre(self):
         self.db["genre"].create(  # type: ignore
             {
@@ -192,4 +203,127 @@ class Datastore:
             },
             pk="id",
             not_null={"id", "name"},
+        )
+
+    # Single table for all media entities.
+    # Media -> genre mapping.
+    def create_genre_mapping(self):
+        self.db["genre_mapping"].create(  # type: ignore
+            {
+                "id": str,
+                "media_id": int,
+                "genre_id": str,  # genre id
+            },
+            pk="id",
+            not_null={"id", "media_id", "genre_id"},
+        )
+
+        self.db.add_foreign_keys(
+            [
+                ("genre_mapping", "media_id", "extended_show", "id"),
+                ("genre_mapping", "media_id", "extended_movie", "id"),
+                ("genre_mapping", "media_id", "extended_episode", "id"),
+            ]
+        )
+
+    def create_extended_show(self):
+        self.db["extended_show"].create(  # type: ignore
+            {
+                "type": str,
+                "id": int,
+                "title": str,
+                "year": int,
+                "trakt_id": int,
+                "trakt_slug": str,
+                "tvdb_id": int,
+                "imdb_id": str,
+                "tmdb_id": int,
+                "tvrage_id": int,
+                "overview": str,
+                "first_aired": str,
+                "runtime": int,
+                "certification": str,
+                "network": str,
+                "country": str,
+                "trailer": str,
+                "homepage": str,
+                "status": str,
+                "language": str,
+                "aired_episodes": int,
+                "rating": float,
+                "votes": int,
+                "comment_count": int,
+            },
+            pk="id",
+            not_null={"id", "title", "trakt_id"},
+            defaults={"type": "show"},
+        )
+
+    def create_extended_episode(self):
+        self.db["extended_episode"].create(  # type: ignore
+            {
+                "type": str,
+                "id": int,
+                "show_id": int,
+                "season": int,
+                "number": int,
+                "title": str,
+                "trakt_id": int,
+                "tvdb_id": int,
+                "imdb_id": str,
+                "tmdb_id": int,
+                "tvrage_id": int,
+                "overview": str,
+                "first_aired": str,
+                "runtime": int,
+                "certification": str,
+                "network": str,
+                "country": str,
+                "trailer": str,
+                "homepage": str,
+                "status": str,
+                "language": str,
+                "aired_episodes": int,
+                "rating": float,
+                "votes": int,
+                "comment_count": int,
+            },
+            pk="id",
+            not_null={"id", "season", "number", "trakt_id", "show_id"},
+            defaults={"type": "episode"},
+        )
+        self.db.add_foreign_keys(
+            [
+                ("extended_episode", "show_id", "extended_show", "id"),
+            ]
+        )
+
+    def create_extended_movie(self):
+        self.db["extended_movie"].create(  # type: ignore
+            {
+                "type": str,
+                "id": int,
+                "title": str,
+                "year": int,
+                "trakt_id": int,
+                "trakt_slug": int,
+                "imdb_id": str,
+                "tmdb_id": int,
+                "tagline": str,
+                "overview": str,
+                "released": str,
+                "runtime": int,
+                "country": str,
+                "trailer": str,
+                "homepage": str,
+                "status": str,
+                "rating": float,
+                "votes": int,
+                "comment_count": int,
+                "language": str,
+                "certification": str,
+            },
+            pk="id",
+            not_null={"id", "title", "trakt_id"},
+            defaults={"type": "movie"},
         )
