@@ -1,10 +1,11 @@
 from itertools import repeat
 
-from sqlite_utils import Database
-
 from api import TraktRequest
+from sqlite_utils import Database
 from trakt import (CollectedEpisode, CollectedEpisodeRow, CollectedMovie,
                    CollectedMovieRow, CollectedShow, Episode, EpisodeRow,
+                   ExtendedEpisode, ExtendedEpisodeRow, ExtendedMovie,
+                   ExtendedMovieRow, ExtendedShow, ExtendedShowRow,
                    HistoryEpisode, HistoryEpisodeRow, HistoryMovie,
                    HistoryMovieRow, Movie, MovieRow, RatedEpisode,
                    RatedEpisodeRow, RatedMovie, RatedMovieRow, RatedShow,
@@ -62,6 +63,89 @@ class Commons:
             "trakt_slug": entry["ids"]["slug"],
             "imdb_id": entry["ids"]["imdb"],
             "tmdb_id": entry["ids"]["tmdb"],
+        }
+    
+    def generate_genres(self, db: Database, api: TraktRequest) -> str:
+        g = api.get_genre_data()
+
+        db["genre"].insert_all(g, hash_id="id", batch_size=50, ignore=True)
+        
+        return f"Added {len(list(db['genre'].rows))} genres to genre table."
+
+    def extended_episode_to_extended_episode_row(
+        self, entry: ExtendedEpisode, show_id: int
+    ) -> ExtendedEpisodeRow:
+        return {
+            "type": "episode",
+            "id": entry["ids"]["trakt"],
+            "show_id": show_id,
+            "season": entry["season"],
+            "number": entry["number"],
+            "title": entry["title"],
+            "trakt_id": entry["ids"]["trakt"],
+            "tvdb_id": entry["ids"]["tvdb"],
+            "imdb_id": entry["ids"]["imdb"],
+            "tmdb_id": entry["ids"]["tmdb"],
+            "tvrage_id": entry["ids"]["tvrage"],
+            "overview": entry["overview"],
+            "rating": entry["rating"],
+            "votes": entry["votes"],
+            "comment_count": entry["comment_count"],
+            "first_aired": entry["first_aired"],
+            "runtime": entry["runtime"],
+        }
+
+    def extended_show_to_extended_show_row(self, entry: ExtendedShow) -> ExtendedShowRow:
+        return {
+            "type": "show",
+            "id": entry["ids"]["trakt"],
+            "title": entry["title"],
+            "year": entry["year"],
+            "trakt_id": entry["ids"]["trakt"],
+            "trakt_slug": entry["ids"]["slug"],
+            "tvdb_id": entry["ids"]["tvdb"],
+            "imdb_id": entry["ids"]["imdb"],
+            "tmdb_id": entry["ids"]["tmdb"],
+            "tvrage_id": entry["ids"]["tvrage"],
+            "overview": entry["overview"],
+            "first_aired": entry["first_aired"],
+            "runtime": entry["runtime"],
+            "certification": entry["certification"],
+            "network": entry["network"],
+            "country": entry["country"],
+            "trailer": entry["trailer"],
+            "homepage": entry["homepage"],
+            "status": entry["status"],
+            "language": entry["language"],
+            "aired_episodes": entry["aired_episodes"],
+            "rating": entry["rating"],
+            "votes": entry["votes"],
+            "comment_count": entry["comment_count"],
+        }
+
+    def extended_movie_to_extended_movie_row(self, entry: ExtendedMovie) -> ExtendedMovieRow:
+        return {
+            "type": "movie",
+            "id": entry["ids"]["trakt"],
+            "title": entry["title"],
+            "year": entry["year"],
+            "trakt_id": entry["ids"]["trakt"],
+            "trakt_slug": entry["ids"]["slug"],
+            "imdb_id": entry["ids"]["imdb"],
+            "tmdb_id": entry["ids"]["tmdb"],
+            "tagline": entry["tagline"],
+            "overview": entry["overview"],
+            "released": entry["released"],
+            "runtime": entry["runtime"],
+            "country": entry["country"],
+            "trailer": entry["trailer"],
+            "homepage": entry["homepage"],
+            "status": entry["status"],
+            "rating": entry["rating"],
+            "votes": entry["votes"],
+            "comment_count": entry["comment_count"],
+            "language": entry["language"],
+            "certification": entry["certification"],
         }
 
 
@@ -260,3 +344,7 @@ class Watchlist:
         movie_row = c.movie_to_movie_row(movie)
         watch_movie_row = self.entry_to_watchlisted_movie_row(entry)
         return watch_movie_row, movie_row
+
+
+class Extended:
+    pass
