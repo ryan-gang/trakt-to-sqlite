@@ -46,11 +46,11 @@ class TraktRequest:
         URL = f"{HOST}/shows/{show_id}/seasons?extended=episodes"
         return self.get_resource(URL)
 
-    def get_show_data(self, show_slug: str):
+    def get_extended_show_data(self, show_slug: str):
         URL = f"{HOST}/shows/{show_slug}?extended=full"
         return self.get_resource(URL)
 
-    def get_episode_data(self, show_slug: str, show_season: int, show_episode: int):
+    def get_extended_episode_data(self, show_slug: str, show_season: int, show_episode: int):
         """
         Fetch extended episode data from Trakt.
         """
@@ -59,7 +59,7 @@ class TraktRequest:
         )
         return self.get_resource(URL)
 
-    def get_movie_data(self, movie_slug: str):
+    def get_extended_movie_data(self, movie_slug: str):
         URL = f"{HOST}/movies/{movie_slug}?extended=full"
         return self.get_resource(URL)
 
@@ -165,5 +165,5 @@ class TraktRequest:
         response = requests.get(f"{self.backup_url}/stats", headers=self.headers)
         return response.status_code == 200
 
-    def wait(self):
+    def wait(self, WAIT_TIME: int = WAIT_TIME):
         time.sleep(WAIT_TIME)
